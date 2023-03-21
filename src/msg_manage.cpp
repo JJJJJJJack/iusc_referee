@@ -1,10 +1,14 @@
 #include "msg_manage.h"
+#include "iusc_referee/MissionState.h"
 
 using namespace std;
 
 int mavlink_count_1;
 int mav_count_attitude = 0;
 int heartbeat_count = 0;
+bool LASER_COMMAND_READY = false;
+bool GIMBAL_CONTROL_READY = false;
+bool GIMBAL_STATE_READY = false;
 
 std_msgs::Bool laser_command;
 amov_gimbal_sdk_ros::GimbalControl gimbalControl;
@@ -13,10 +17,12 @@ amov_gimbal_sdk_ros::GimbalState gimbalState;
 /*================  Variables to send  ==================*/
 geometry_msgs::PoseStamped quadPoseStamped;
 std_msgs::Float32MultiArray UGVPoseXY;
-std_msgs::UInt8 mission_state_uav_id;
-std_msgs::UInt8 mission_state_arm_command;
-std_msgs::UInt8 mission_state_game_stage;
+iusc_referee::MissionState Missionstate;
 
+/*============  MAVLINK MSG UPDATE CHECK  ==================*/
+bool QUAD_POSE_DATA_READY = false;
+bool UGV_POSE_DATA_READY = false;
+bool MISSION_STATE_INFO_READY = false;
 
 uint8_t mavlink_msg_recv_referee(uint8_t *buf,int r_msglen)
 {
@@ -40,7 +46,8 @@ int mavlink_msg_send_control(uint8_t *buf)
   int len = -1;
   switch(Flag_10ms){
   case 0:
-    len = msg_equipment(buf,MavMsg_Send_LASER_CTRL);
+    if(LASER_COMMAND_READY)
+        len = msg_equipment(buf,MavMsg_Send_LASER_CTRL);
     break;
   case 1:
     heartbeat_count++;
@@ -100,6 +107,7 @@ uint8_t handle_msg(mavlink_message_t msg)
       // UAV poseStamped
     case MAVLINK_MSG_ID_IUSC_CTRL_MISSION_UAV_SIGNAL_STATE:
       {
+    QUAD_POSE_DATA_READY = true;
 	quadPoseStamped.pose.position.x = mavlink_msg_iusc_ctrl_mission_uav_signal_state_get_pos_x(&msg);
 	quadPoseStamped.pose.position.y = mavlink_msg_iusc_ctrl_mission_uav_signal_state_get_pos_y(&msg);
 	quadPoseStamped.pose.position.z = mavlink_msg_iusc_ctrl_mission_uav_signal_state_get_pos_z(&msg);
@@ -112,6 +120,7 @@ uint8_t handle_msg(mavlink_message_t msg)
       // Pack UGV data into multi-array
     case MAVLINK_MSG_ID_IUSC_CTRL_MISSION_UGV_POSITION:
       {
+    UGV_POSE_DATA_READY = true;
 	UGVPoseXY.data[0] = mavlink_msg_iusc_ctrl_mission_ugv_position_get_UGV0_pos_x(&msg);
 	UGVPoseXY.data[1] = mavlink_msg_iusc_ctrl_mission_ugv_position_get_UGV0_pos_y(&msg);
 	UGVPoseXY.data[2] = mavlink_msg_iusc_ctrl_mission_ugv_position_get_UGV1_pos_x(&msg);
@@ -136,9 +145,10 @@ uint8_t handle_msg(mavlink_message_t msg)
       }
     case MAVLINK_MSG_ID_IUSC_CTRL_MISSION_STATE:
       {
-	mission_state_uav_id.data = mavlink_msg_iusc_ctrl_mission_state_get_uav_id(&msg);
-	mission_state_arm_command.data  = mavlink_msg_iusc_ctrl_mission_state_get_armed(&msg);
-	mission_state_game_stage.data = mavlink_msg_iusc_ctrl_mission_state_get_stage(&msg);
+    MISSION_STATE_INFO_READY = true;
+	Missionstate.uav_id = mavlink_msg_iusc_ctrl_mission_state_get_uav_id(&msg);
+	Missionstate.arm_command  = mavlink_msg_iusc_ctrl_mission_state_get_armed(&msg);
+	Missionstate.game_stage = mavlink_msg_iusc_ctrl_mission_state_get_stage(&msg);
 	break;
       }
     default:

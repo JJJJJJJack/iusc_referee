@@ -6,17 +6,28 @@
 #include "serial/serial.h"
 
 #include <time.h>
-
 #include "msg_manage.h"
 
 using namespace std;
 
 uint64_t time_boot_ms = 0;
 
-/*void joystick_command_callback(const sensor_msgs::Joy& message){
-  joy_control_ready = true;
-  joy_control = message;
-  }*/
+  
+void laser_command_callback(const std_msgs::Bool& message){
+  LASER_COMMAND_READY = true;    
+  laser_command = message;
+}
+
+void gimbal_control_callback(const amov_gimbal_sdk_ros::GimbalControl& message){
+  GIMBAL_CONTROL_READY = true;    
+  gimbalControl = message;
+}
+
+void gimbal_state_callback(const amov_gimbal_sdk_ros::GimbalState& message){
+  GIMBAL_STATE_READY = true;    
+  gimbalState = message;
+  }
+
 
 void init_variables(){
   std_msgs::MultiArrayDimension dimVehicle, dimPose;
@@ -26,6 +37,9 @@ void init_variables(){
   dimPose.label = "poseXY";
   dimPose.size = 2;
   dimPose.stride = 2;
+  Missionstate.uav_id = 0;
+  Missionstate.arm_command = 0;
+  Missionstate.game_stage = 0;
   UGVPoseXY.layout.dim.push_back(dimVehicle);
   UGVPoseXY.layout.dim.push_back(dimPose);
   for(int i = 0; i < 10; i++){
@@ -42,6 +56,14 @@ int main(int argc, char **argv)
   string USB_Dev;
   ros::NodeHandle nh("~");
   nh.param<std::string>("USB", USB_Dev, "/dev/ttyUSB0");
+  
+  ros::Publisher quad_pose_pub = n.advertise<geometry_msgs::PoseStamped>("/QuadPose", 1);
+  ros::Publisher ugv_pose_pub = n.advertise<std_msgs::Float32MultiArray>("/UGVPose", 1);
+  ros::Publisher mission_state_pub = n.advertise<iusc_referee::MissionState>("/MissonState", 1);
+  
+  ros::Subscriber laser_command_sub = n.subscribe("/laser_command", 1, laser_command_callback);
+  ros::Subscriber gimbal_control_sub = n.subscribe("/amov_gimbal_ros/gimbal_control", 1, gimbal_control_callback);
+  ros::Subscriber gimbal_state_sub = n.subscribe("/amov_gimbal_ros/gimbal_state", 1, gimbal_state_callback);
   
   serial::Serial my_serial;
   serial::Timeout timeout = serial::Timeout::simpleTimeout(0);
@@ -95,6 +117,14 @@ int main(int argc, char **argv)
     if (recv_len > 0){
       uint8_t r_id = mavlink_msg_recv_referee(mavlink_recv, recv_len);
     }
+    
+    // Publish Mavlink message    
+    if(QUAD_POSE_DATA_READY)
+    	quad_pose_pub.publish(quadPoseStamped);
+    if(UGV_POSE_DATA_READY)
+    	ugv_pose_pub.publish(UGVPoseXY);
+    if(MISSION_STATE_INFO_READY)
+    	mission_state_pub.publish(Missionstate);
         
     ros::spinOnce();
 

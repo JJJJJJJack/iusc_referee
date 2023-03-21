@@ -53,6 +53,10 @@ find_package(catkin REQUIRED
 #  Signal.msg
 #   Message2.msg
 #)
+add_message_files(
+  FILES
+  MissionState.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -74,6 +78,10 @@ find_package(catkin REQUIRED
 #  std_msgs
   # Or other packages containing msgs
 #)
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+)
 
 ###################################
 ## catkin specific configuration ##

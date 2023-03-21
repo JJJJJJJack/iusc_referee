@@ -10,6 +10,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "amov_gimbal_sdk_ros/GimbalControl.h"
 #include "amov_gimbal_sdk_ros/GimbalState.h"
+#include "iusc_referee/MissionState.h"
 
 typedef enum
 {
@@ -23,6 +24,12 @@ typedef enum
 extern int mavlink_count_1;			
 extern int mav_count_attitude;
 extern uint64_t time_boot_ms;
+extern bool QUAD_POSE_DATA_READY;
+extern bool UGV_POSE_DATA_READY;
+extern bool MISSION_STATE_INFO_READY;
+extern bool LASER_COMMAND_READY;
+extern bool GIMBAL_CONTROL_READY;
+extern bool GIMBAL_STATE_READY;
 
 /*================  Callback variables from local ==================*/
 extern std_msgs::Bool laser_command;
@@ -32,9 +39,7 @@ extern amov_gimbal_sdk_ros::GimbalState gimbalState;
 /*================  Variables to send    ==================*/
 extern geometry_msgs::PoseStamped quadPoseStamped;
 extern std_msgs::Float32MultiArray UGVPoseXY;
-extern std_msgs::UInt8 mission_state_uav_id;
-extern std_msgs::UInt8 mission_state_arm_command;
-extern std_msgs::UInt8 mission_state_game_stage;
+extern iusc_referee::MissionState Missionstate;
 
 /*================                    ================================*/
 extern mavlink_message_t MSG_HEARTBEAT();
