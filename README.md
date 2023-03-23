@@ -4,7 +4,7 @@ IUSC competition ROS node for the communication of quads with IUSC referee syste
 
 ## Description
 
-The `msg_manage.cpp` file interfaces with IUSC referee system (hardware) via Mavlink through UART. The `iusc_referee.cpp` file handles the ROS information, publishing and subscribing on the following topics. **Do not make any change to the code**. Send it to issues or contact [http://iusc.csaa.org.cn/](the IUSC committee) for error in installation or compilation.
+The `msg_manage.cpp` file interfaces with IUSC referee system (hardware) via Mavlink through UART. The `iusc_referee.cpp` file handles the ROS information, publishing and subscribing on the following topics. **Do not make any change to the code**. Send it to issues or contact [the IUSC committee](http://iusc.csaa.org.cn/) for error in installation or compilation.
 
 ## Publishers
 
@@ -31,6 +31,6 @@ catkin_make
 
 Before the installation, it is necessary to: 
 
-- install Amov Gimbal SDK following [https://wiki.amovlab.com/public/gimbalwiki/G1/doc/AmovGimbalROSpackage.html](Amov ROS SDK document).  
+- install Amov Gimbal SDK following <https://wiki.amovlab.com/public/gimbalwiki/G1/doc/AmovGimbalROSpackage.html>.  
 - install Open CV (version 3.3.1 or later).
 
